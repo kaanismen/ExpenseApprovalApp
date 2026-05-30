@@ -322,13 +322,13 @@ namespace ExpenseApprovalApp.Migrations
                     b.HasOne("ExpenseApprovalApp.Models.Entities.AppUser", "IssuedBy")
                         .WithMany()
                         .HasForeignKey("IssuedById")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ExpenseApprovalApp.Models.Entities.AppUser", "IssuedTo")
                         .WithMany()
                         .HasForeignKey("IssuedToId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("IssuedBy");

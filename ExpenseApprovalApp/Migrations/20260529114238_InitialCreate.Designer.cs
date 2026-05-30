@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ExpenseApprovalApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260527161719_InitialCreate")]
+    [Migration("20260529114238_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -325,13 +325,13 @@ namespace ExpenseApprovalApp.Migrations
                     b.HasOne("ExpenseApprovalApp.Models.Entities.AppUser", "IssuedBy")
                         .WithMany()
                         .HasForeignKey("IssuedById")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ExpenseApprovalApp.Models.Entities.AppUser", "IssuedTo")
                         .WithMany()
                         .HasForeignKey("IssuedToId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("IssuedBy");

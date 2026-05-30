@@ -180,14 +180,12 @@ namespace ExpenseApprovalApp.Migrations
                         name: "FK_ExpenseRequests_AspNetUsers_IssuedById",
                         column: x => x.IssuedById,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_ExpenseRequests_AspNetUsers_IssuedToId",
                         column: x => x.IssuedToId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
