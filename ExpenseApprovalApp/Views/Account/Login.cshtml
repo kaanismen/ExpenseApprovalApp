@@ -1,6 +1,6 @@
 ﻿@model ExpenseApprovalApp.Models.ViewModels.LoginViewModel
 
-<h2>Giriş Yap</h2>
+<h2>Login</h2>
 
 <form asp-controller="Account" asp-action="Login" method="post">
     @Html.AntiForgeryToken()
@@ -19,10 +19,10 @@
 
     <div>
         <input asp-for="RememberMe" type="checkbox" />
-        <label asp-for="RememberMe">Beni Hatırla</label>
+        <label asp-for="RememberMe">Remember Me</label>
     </div>
 
     <div asp-validation-summary="All" class="text-danger"></div>
 
-    <button type="submit">Giriş</button>
+    <button type="submit">Login</button>
 </form>
