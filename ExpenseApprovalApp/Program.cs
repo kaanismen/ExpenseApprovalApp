@@ -10,11 +10,19 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 //Identity
-builder.Services.AddIdentity<AppUser, IdentityRole>()
-    .AddEntityFrameworkStores<AppDbContext>();
+builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = false;
+}  )
+.AddEntityFrameworkStores<AppDbContext>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+});
 
 var app = builder.Build();
 
