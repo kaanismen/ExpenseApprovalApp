@@ -16,5 +16,7 @@ namespace ExpenseApprovalApp.Controllers
             _dbContext = dbContext;
         }
 
+        [HttpGet]
+
     }
 }
