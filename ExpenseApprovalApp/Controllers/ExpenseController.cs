@@ -2,13 +2,16 @@
 using ExpenseApprovalApp.Models.Entities;
 using ExpenseApprovalApp.Models.Enums;
 using ExpenseApprovalApp.Models.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 
 namespace ExpenseApprovalApp.Controllers
 {
+    [Authorize]
     public class ExpenseController : Controller
     {
         private readonly UserManager<AppUser> _userManager;
@@ -35,6 +38,7 @@ namespace ExpenseApprovalApp.Controllers
         {
             if (ModelState.IsValid)
             {
+                var manager = await _userManager.FindByEmailAsync("manager@expense.com");
                 var user = await _userManager.GetUserAsync(User);
                 var request = new ExpenseRequest
                 {
@@ -43,27 +47,21 @@ namespace ExpenseApprovalApp.Controllers
                     Description = model.Description,
                     Status = ExpenseStatus.Pending,
                     Date = DateTime.Now,
-                    Amount = 0
+                    IssuedToId = manager.Id,
+                    Amount = model.Items.Sum(i => i.Amount),
+                    Items = model.Items.Select(i => new ExpenseItem
+                    {
+                        Name = i.Name,
+                        Description = i.Description,
+                        Amount = i.Amount,
+                        Category = i.Category
+                    }).ToList()
+                    
                 };
                 _dbContext.ExpenseRequests.Add(request);
                 await _dbContext.SaveChangesAsync();
 
-                foreach (var item in model.Items)
-                {
-                    var expenseItem = new ExpenseItem
-                    {
-                        Description = item.Description,
-                        Name = item.Name,
-                        Amount = item.Amount,
-                        Category = item.Category,
-                        ExpenseRequestId = request.Id
-                    };
-                    _dbContext.ExpenseItems.Add(expenseItem);
-                    request.Amount += item.Amount;
-
-                }
-                _dbContext.ExpenseRequests.Update(request);
-                await _dbContext.SaveChangesAsync();
+               
 
                 return RedirectToAction("Index");
             }
@@ -71,12 +69,27 @@ namespace ExpenseApprovalApp.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            if (ModelState.IsValid)
+            var user = await _userManager.GetUserAsync(User);
+
+            var expenses = _dbContext.ExpenseRequests.Where(e => e.IssuedById == user.Id).Include(e => e.Items);
+            var model = expenses.Select(e => new ExpenseRequestListViewModel
             {
-                var user = _userManager.GetUserAsync(User);
-            }
+                Id = e.Id,
+                Title = e.Title,
+                Amount = e.Amount,
+                Status = e.Status,
+                Time = e.Date,
+                Expenses = e.Items.Select(i => new ExpenseItemViewModel
+                {
+                    Description = i.Description,
+                    Amount = i.Amount,
+                    Category = i.Category
+                }).ToList()
+            }).ToList();
+
+            return View(model);
         }
     }
 }
