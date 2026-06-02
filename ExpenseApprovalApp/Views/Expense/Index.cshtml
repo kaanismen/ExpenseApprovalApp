@@ -1,6 +1,70 @@
-﻿namespace ExpenseApprovalApp.Views.Expense
-{
-    public class Index
-    {
-    }
+﻿@model List<ExpenseApprovalApp.Models.ViewModels.ExpenseRequestListViewModel>
+
+@{
+    ViewData["Title"] = "Harcama Taleplerim";
 }
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Harcama Taleplerim</h2>
+        <a asp-action="Create" class="btn btn-primary">+ Yeni Talep</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">Henüz harcama talebiniz bulunmuyor.</div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var request in Model)
+            {
+                <div class="col-md-6 mb-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h5 class="card-title">@request.Title</h5>
+                                <span class="badge @(request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Pending ? "bg-warning text-dark" :
+                                                                                           request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Approved ? "bg-success" : "bg-danger")">
+                                    @request.Status
+                                </span>
+                            </div>
+                            <p class="text-muted small mb-2">@request.Time.ToString("dd MMM yyyy HH:mm")</p>
+                            <p class="fw-bold">Toplam: ₺@request.Amount.ToString("N2")</p>
+
+                            <button class="btn btn-outline-secondary btn-sm"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#items-@request.Id">
+                                Kalemleri Göster
+                            </button>
+
+                            <div class="collapse mt-3" id="items-@request.Id">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Ad</th>
+                                            <th>Açıklama</th>
+                                            <th>Kategori</th>
+                                            <th>Tutar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in request.Expenses)
+                                        {
+                                            <tr>
+                                                <td>@item.Name</td>
+                                                <td>@item.Description</td>
+                                                <td>@item.Category</td>
+                                                <td>₺@item.Amount.ToString("N2")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

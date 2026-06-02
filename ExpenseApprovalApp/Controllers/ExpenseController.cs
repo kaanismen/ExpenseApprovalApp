@@ -83,6 +83,7 @@ namespace ExpenseApprovalApp.Controllers
                 Time = e.Date,
                 Expenses = e.Items.Select(i => new ExpenseItemViewModel
                 {
+                    Name = i.Name,
                     Description = i.Description,
                     Amount = i.Amount,
                     Category = i.Category
