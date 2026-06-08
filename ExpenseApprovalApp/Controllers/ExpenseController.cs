@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace ExpenseApprovalApp.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Employee")]
     public class ExpenseController : Controller
     {
         private readonly UserManager<AppUser> _userManager;

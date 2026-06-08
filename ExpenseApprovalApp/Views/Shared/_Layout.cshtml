@@ -1,4 +1,12 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@using ExpenseApprovalApp.Models.Entities
+@inject UserManager<AppUser> UserManager
+
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -20,17 +28,41 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+                        @if (User.IsInRole("Employee"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Expense" asp-action="Index">Taleplerim</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Expense" asp-action="Create">Yeni Talep</a>
+                            </li>
+                        }
+                        else if (User.IsInRole("Manager"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Approval" asp-action="Index">Onay Bekleyenler</a>
+                            </li>
+                        }
+                        else if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Admin" asp-action="Index">Yönetim Paneli</a>
+                            </li>
+                        }
                     </ul>
-                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-link nav-link text-dark">Logout</button>
-                    </form>
+
+                    <div class="d-flex align-items-center gap-3">
+                        @if (User.Identity.IsAuthenticated && currentUser != null)
+                        {
+                            <span class="text-muted small">
+                                @currentUser.FirstName @currentUser.LastName — @currentUser.Department
+                            </span>
+                        }
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">Çıkış</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -43,7 +75,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2026 - ExpenseApprovalApp - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2026 - ExpenseApprovalApp
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

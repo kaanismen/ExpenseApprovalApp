@@ -27,7 +27,20 @@ namespace ExpenseApprovalApp.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
                 if (result.Succeeded)
                 {
-                    return RedirectToAction("Index", "Home");
+                    var user = await _userManager.FindByEmailAsync(model.Email);
+                    var roles = await _userManager.GetRolesAsync(user);
+                    if (roles.Contains("Employee"))
+                    {
+                        return RedirectToAction("Index", "Expense");
+                    } else if (roles.Contains("Manager"))
+                    {
+                        return RedirectToAction("Index", "Home");
+                    } else
+                    {
+                        return RedirectToAction("Index", "Home");
+                    }
+                    
+                    
                 }
                 else
                 {
