@@ -1,0 +1,86 @@
+﻿@model ExpenseApprovalApp.Models.ViewModels.ExpenseRequestViewModel
+
+@{
+    ViewData["Title"] = "Revize Harcama Talebi";
+}
+
+<div class="container mt-4">
+    <h2>Harcama Talebi Düzenlemesi</h2>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" name="id" value="@ViewBag.RequestId" />
+
+        <div class="mb-3">
+            <label asp-for="Title" class="form-label">Başlık</label>
+            <input asp-for="Title" class="form-control" />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label">Açıklama</label>
+            <textarea asp-for="Description" class="form-control"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <h4 class="mt-4">Harcama Kalemleri</h4>
+        <table class="table" id="itemsTable">
+            <thead>
+                <tr>
+                    <th>Ad</th>
+                    <th>Açıklama</th>
+                    <th>Tutar</th>
+                    <th>Kategori</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="itemsBody">
+            </tbody>
+        </table>
+
+        <button type="button" class="btn btn-secondary mb-3" id="addItemBtn">+ Kalem Ekle</button>
+
+        <div>
+            <button type="submit" class="btn btn-primary">Talebi Gönder</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">İptal</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        let itemIndex = 0;
+
+        const existingItems = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Items));
+
+        existingItems.forEach(item => {
+            addRow(item.Name, item.Description, item.Amount, item.Category);
+        });
+
+        document.getElementById('addItemBtn').addEventListener('click', function () {
+            addRow('', '', '', 0);
+        });
+
+        function addRow(name, description, amount, category) {
+            const tbody = document.getElementById('itemsBody');
+            const row = document.createElement('tr');
+
+            row.innerHTML = `
+                <td><input name="Items[${itemIndex}].Name" class="form-control" value="${name}" /></td>
+                <td><input name="Items[${itemIndex}].Description" class="form-control" value="${description}" /></td>
+                <td><input name="Items[${itemIndex}].Amount" type="number" step="0.01" class="form-control" value="${amount}" /></td>
+                <td>
+                    <select name="Items[${itemIndex}].Category" class="form-select">
+                        <option value="0" ${category == 0 ? 'selected' : ''}>Travel</option>
+                        <option value="1" ${category == 1 ? 'selected' : ''}>Food</option>
+                        <option value="2" ${category == 2 ? 'selected' : ''}>Office</option>
+                        <option value="3" ${category == 3 ? 'selected' : ''}>Other</option>
+                    </select>
+                </td>
+                <td><button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">Sil</button></td>
+            `;
+
+            tbody.appendChild(row);
+            itemIndex++;
+        }
+    </script>
+}

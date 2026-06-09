@@ -25,14 +25,27 @@
                             <div class="d-flex justify-content-between align-items-start">
                                 <h5 class="card-title">@request.Title</h5>
                                 <span class="badge @(request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Pending ? "bg-warning text-dark" :
-                                                                                           request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Approved ? "bg-success" : "bg-danger")">
+                                                                                           request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Approved ? "bg-success" :
+                                                                                           request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested ? "bg-info text-dark" : "bg-danger")">
                                     @request.Status
                                 </span>
                             </div>
                             <p class="text-muted small mb-2">@request.Time.ToString("dd MMM yyyy HH:mm")</p>
                             <p class="fw-bold">Toplam: ₺@request.Amount.ToString("N2")</p>
 
-                            <button class="btn btn-outline-secondary btn-sm"
+                            @if ((request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Rejected ||
+                                  request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested) &&
+                                  !string.IsNullOrEmpty(request.ManagerComment))
+                            {
+                                <div class="alert @(request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested ? "alert-info" : "alert-danger") py-2 mt-2">
+                                    <small><strong>Yönetici Notu:</strong> @request.ManagerComment</small>
+                                </div>
+                            }
+                            @if (request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested)
+                            {
+                                <a asp-action="Edit" asp-route-id="@request.Id" class="btn btn-warning btn-sm mt-2 me-2">Düzenle</a>
+                            }
+                            <button class="btn btn-outline-secondary btn-sm mt-2"
                                     data-bs-toggle="collapse"
                                     data-bs-target="#items-@request.Id">
                                 Kalemleri Göster

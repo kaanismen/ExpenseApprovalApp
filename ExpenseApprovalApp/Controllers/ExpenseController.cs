@@ -71,6 +71,59 @@ namespace ExpenseApprovalApp.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var request = await _dbContext.ExpenseRequests
+                .Include(e => e.Items)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            ViewBag.RequestId = id;
+
+            var model = new ExpenseRequestViewModel
+            {
+                Title = request.Title,
+                Description = request.Description,
+                Items = request.Items.Select(i => new ExpenseItemViewModel
+                {
+                    Name = i.Name,
+                    Description = i.Description,
+                    Amount = i.Amount,
+                    Category = i.Category
+                }).ToList()
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(int id, ExpenseRequestViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var request = await _dbContext.ExpenseRequests
+                    .Include(e => e.Items)
+                    .FirstOrDefaultAsync(e => e.Id == id);
+
+                request.Title = model.Title;
+                request.Date = DateTime.Now;
+                request.Description = model.Description;
+                request.Amount = model.Items.Sum(i => i.Amount);
+                request.Status = ExpenseStatus.Pending;
+                _dbContext.ExpenseItems.RemoveRange(request.Items);
+                request.Items = model.Items.Select(i => new ExpenseItem
+                {
+                    Name = i.Name,
+                    Description = i.Description,
+                    Amount = i.Amount,
+                    Category = i.Category
+                }).ToList();
+                await _dbContext.SaveChangesAsync();
+                return RedirectToAction("Index");
+            }
+            else { return View(model); }
+
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
