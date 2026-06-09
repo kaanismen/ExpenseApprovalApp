@@ -1,0 +1,109 @@
+﻿@model List<ExpenseApprovalApp.Models.ViewModels.ExpenseRequestListViewModel>
+
+@{
+    ViewData["Title"] = "Onay Bekleyen Talepler";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Harcama Talepleri</h2>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">Bekleyen talep bulunmuyor.</div>
+    }
+    else
+    {
+        @foreach (var request in Model)
+        {
+            <div class="card shadow-sm mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center"
+                     style="cursor:pointer"
+                     data-bs-toggle="collapse"
+                     data-bs-target="#request-@request.Id">
+                    <div>
+                        <strong>@request.Title</strong>
+                        <span class="text-muted small ms-2">@request.Time.ToString("dd MMM yyyy HH:mm")</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="fw-bold">₺@request.Amount.ToString("N2")</span>
+                        <span class="badge @(request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Pending ? "bg-warning text-dark" :
+                                                                           request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Approved ? "bg-success" :
+                                                                           request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested ? "bg-info text-dark" : "bg-danger")">
+                            @request.Status
+                        </span>
+                    </div>
+                </div>
+
+                <div class="collapse" id="request-@request.Id">
+                    <div class="card-body">
+
+                        <table class="table table-sm mb-4">
+                            <thead>
+                                <tr>
+                                    <th>Ad</th>
+                                    <th>Açıklama</th>
+                                    <th>Kategori</th>
+                                    <th>Tutar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in request.Expenses)
+                                {
+                                    <tr>
+                                        <td>@item.Name</td>
+                                        <td>@item.Description</td>
+                                        <td>@item.Category</td>
+                                        <td>₺@item.Amount.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                        <div class="d-flex gap-2 flex-wrap">
+                            <form asp-action="Approve" method="post">
+                                <input type="hidden" name="id" value="@request.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-success btn-sm">Onayla</button>
+                            </form>
+
+                            <button class="btn btn-danger btn-sm"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#reject-@request.Id">
+                                Reddet
+                            </button>
+
+                            <button class="btn btn-info btn-sm text-dark"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#revision-@request.Id">
+                                Revize İste
+                            </button>
+                        </div>
+
+                        <div class="collapse mt-3" id="reject-@request.Id">
+                            <form asp-action="Reject" method="post">
+                                <input type="hidden" name="id" value="@request.Id" />
+                                @Html.AntiForgeryToken()
+                                <div class="mb-2">
+                                    <textarea name="managerComment" class="form-control" rows="3" placeholder="Red gerekçesi..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-danger btn-sm">Reddi Onayla</button>
+                            </form>
+                        </div>
+
+                        <div class="collapse mt-3" id="revision-@request.Id">
+                            <form asp-action="RevisionRequested" method="post">
+                                <input type="hidden" name="id" value="@request.Id" />
+                                @Html.AntiForgeryToken()
+                                <div class="mb-2">
+                                    <textarea name="managerComment" class="form-control" rows="3" placeholder="Revize notları..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-info btn-sm text-dark">Revize Gönder</button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>

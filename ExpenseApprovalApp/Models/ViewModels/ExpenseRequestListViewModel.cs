@@ -11,5 +11,6 @@ namespace ExpenseApprovalApp.Models.ViewModels
         public ExpenseStatus Status { get; set; }
         public DateTime Time { get; set; }
         public List<ExpenseItemViewModel> Expenses { get; set; }
+        public string? ManagerComment { get; set; }
     }
 }

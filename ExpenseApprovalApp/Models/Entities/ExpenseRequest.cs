@@ -16,7 +16,7 @@ namespace ExpenseApprovalApp.Models.Entities
         public string IssuedToId { get; set; }
         public List<ExpenseItem> Items { get; set; }
 
-
+        public string? ManagerComment { get; set; }
 
 
     }

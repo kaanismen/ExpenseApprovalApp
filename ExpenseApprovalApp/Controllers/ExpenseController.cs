@@ -38,8 +38,10 @@ namespace ExpenseApprovalApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                var manager = await _userManager.FindByEmailAsync("manager@expense.com");
+                
                 var user = await _userManager.GetUserAsync(User);
+                var managers = await _userManager.GetUsersInRoleAsync("Manager");
+                var manager = managers.FirstOrDefault(m => m.Department == user.Department);
                 var request = new ExpenseRequest
                 {
                     Title = model.Title,
@@ -81,6 +83,7 @@ namespace ExpenseApprovalApp.Controllers
                 Amount = e.Amount,
                 Status = e.Status,
                 Time = e.Date,
+                ManagerComment = e.ManagerComment,
                 Expenses = e.Items.Select(i => new ExpenseItemViewModel
                 {
                     Name = i.Name,
