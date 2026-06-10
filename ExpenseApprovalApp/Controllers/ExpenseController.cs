@@ -40,8 +40,11 @@ namespace ExpenseApprovalApp.Controllers
             {
                 
                 var user = await _userManager.GetUserAsync(User);
+
                 var managers = await _userManager.GetUsersInRoleAsync("Manager");
                 var manager = managers.FirstOrDefault(m => m.Department == user.Department);
+                if (manager == null) return BadRequest("No managers found in the related department.");
+
                 var request = new ExpenseRequest
                 {
                     Title = model.Title,
@@ -76,6 +79,8 @@ namespace ExpenseApprovalApp.Controllers
             var request = await _dbContext.ExpenseRequests
                 .Include(e => e.Items)
                 .FirstOrDefaultAsync(e => e.Id == id);
+            if (request == null) return NotFound();
+            if (request.Status != ExpenseStatus.RevisionRequested && request.Status != ExpenseStatus.Pending) return Forbid();
 
             ViewBag.RequestId = id;
 
@@ -102,6 +107,8 @@ namespace ExpenseApprovalApp.Controllers
                 var request = await _dbContext.ExpenseRequests
                     .Include(e => e.Items)
                     .FirstOrDefaultAsync(e => e.Id == id);
+                if (request == null) return NotFound();
+                if (request.Status != ExpenseStatus.RevisionRequested && request.Status != ExpenseStatus.Pending) return Forbid();
 
                 request.Title = model.Title;
                 request.Date = DateTime.Now;

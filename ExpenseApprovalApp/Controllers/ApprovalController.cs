@@ -51,6 +51,7 @@ namespace ExpenseApprovalApp.Controllers
         {
             
             var request = await _dbContext.ExpenseRequests.FindAsync(id);
+            if (request == null) return NotFound();
             request.Status = ExpenseStatus.Approved;
             await _dbContext.SaveChangesAsync();
             return RedirectToAction("Index");
@@ -61,6 +62,7 @@ namespace ExpenseApprovalApp.Controllers
         {
 
             var request = await _dbContext.ExpenseRequests.FindAsync(id);
+            if (request == null) return NotFound();
             request.Status = ExpenseStatus.Rejected;
             request.ManagerComment = managerComment;
             await _dbContext.SaveChangesAsync();
@@ -72,6 +74,7 @@ namespace ExpenseApprovalApp.Controllers
         {
 
             var request = await _dbContext.ExpenseRequests.FindAsync(id);
+            if (request == null) return NotFound();
             request.Status = ExpenseStatus.RevisionRequested;
             request.ManagerComment = managerComment;
             await _dbContext.SaveChangesAsync();
