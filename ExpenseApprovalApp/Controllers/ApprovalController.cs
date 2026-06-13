@@ -25,7 +25,32 @@ namespace ExpenseApprovalApp.Controllers
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
-            var expenses = _dbContext.ExpenseRequests.Where(e => e.IssuedToId == user.Id).Include(e => e.Items);
+            var expenses = _dbContext.ExpenseRequests.Where(e => e.IssuedToId == user.Id && e.Status == ExpenseStatus.Pending).Include(e => e.Items);
+            var model = expenses.Select(e => new ExpenseRequestListViewModel
+            {
+                Id = e.Id,
+                Title = e.Title,
+                Amount = e.Amount,
+                Status = e.Status,
+                Time = e.Date,
+                ManagerComment = e.ManagerComment,
+                Expenses = e.Items.Select(i => new ExpenseItemViewModel
+                {
+                    Name = i.Name,
+                    Description = i.Description,
+                    Amount = i.Amount,
+                    Category = i.Category
+                }).ToList()
+            }).ToList();
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> History()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var expenses = _dbContext.ExpenseRequests.Where(e => e.IssuedToId == user.Id && e.Status != ExpenseStatus.Pending).Include(e => e.Items);
             var model = expenses.Select(e => new ExpenseRequestListViewModel
             {
                 Id = e.Id,

@@ -16,17 +16,17 @@
     }
     else
     {
-        <div class="row">
+        <div class="row align-items-stretch">
             @foreach (var request in Model)
             {
-                <div class="col-md-6 mb-3">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
+                <div class="col-md-6 mb-3 d-flex">
+                    <div class="card shadow-sm w-100">
+                        <div class="card-body d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-start">
                                 <h5 class="card-title">@request.Title</h5>
                                 <span class="badge @(request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Pending ? "bg-warning text-dark" :
-                                                                                           request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Approved ? "bg-success" :
-                                                                                           request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested ? "bg-info text-dark" : "bg-danger")">
+                                                                                                                                 request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Approved ? "bg-success" :
+                                                                                                                                 request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested ? "bg-info text-dark" : "bg-danger")">
                                     @request.Status
                                 </span>
                             </div>
@@ -41,38 +41,51 @@
                                     <small><strong>Yönetici Notu:</strong> @request.ManagerComment</small>
                                 </div>
                             }
-                            @if (request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested)
-                            {
-                                <a asp-action="Edit" asp-route-id="@request.Id" class="btn btn-warning btn-sm mt-2 me-2">Düzenle</a>
-                            }
-                            <button class="btn btn-outline-secondary btn-sm mt-2"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target="#items-@request.Id">
-                                Kalemleri Göster
-                            </button>
 
-                            <div class="collapse mt-3" id="items-@request.Id">
-                                <table class="table table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th>Ad</th>
-                                            <th>Açıklama</th>
-                                            <th>Kategori</th>
-                                            <th>Tutar</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var item in request.Expenses)
-                                        {
+                            <div class="mt-auto">
+                                @if (request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested ||
+                                     request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Pending)
+                                {
+                                    <a asp-action="Edit" asp-route-id="@request.Id" class="btn btn-warning btn-sm mt-2 me-2">Düzenle</a>
+
+                                    <form asp-action="Delete" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@request.Id" />
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-danger btn-sm mt-2 me-2"
+                                                onclick="return confirm('Bu talebi silmek istediğinize emin misiniz?');">
+                                            Sil
+                                        </button>
+                                    </form>
+                                }
+                                <button class="btn btn-outline-secondary btn-sm mt-2"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#items-@request.Id">
+                                    Kalemleri Göster
+                                </button>
+
+                                <div class="collapse mt-3" id="items-@request.Id">
+                                    <table class="table table-sm">
+                                        <thead>
                                             <tr>
-                                                <td>@item.Name</td>
-                                                <td>@item.Description</td>
-                                                <td>@item.Category</td>
-                                                <td>₺@item.Amount.ToString("N2")</td>
+                                                <th>Ad</th>
+                                                <th>Açıklama</th>
+                                                <th>Kategori</th>
+                                                <th>Tutar</th>
                                             </tr>
-                                        }
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in request.Expenses)
+                                            {
+                                                <tr>
+                                                    <td>@item.Name</td>
+                                                    <td>@item.Description</td>
+                                                    <td>@item.Category</td>
+                                                    <td>₺@item.Amount.ToString("N2")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>

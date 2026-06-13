@@ -27,8 +27,8 @@
                     <div class="d-flex align-items-center gap-3">
                         <span class="fw-bold">₺@request.Amount.ToString("N2")</span>
                         <span class="badge @(request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Pending ? "bg-warning text-dark" :
-                                                                           request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Approved ? "bg-success" :
-                                                                           request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested ? "bg-info text-dark" : "bg-danger")">
+                                                                                                         request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Approved ? "bg-success" :
+                                                                                                         request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested ? "bg-info text-dark" : "bg-danger")">
                             @request.Status
                         </span>
                     </div>
@@ -63,18 +63,22 @@
                             <form asp-action="Approve" method="post">
                                 <input type="hidden" name="id" value="@request.Id" />
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-success btn-sm">Onayla</button>
+                                <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Bu talebi onaylamak istediğinize emin misiniz?');">Onayla</button>
                             </form>
 
-                            <button class="btn btn-danger btn-sm"
+                            <button class="btn btn-danger btn-sm toggle-action"
+                                    type="button"
                                     data-bs-toggle="collapse"
-                                    data-bs-target="#reject-@request.Id">
+                                    data-bs-target="#reject-@request.Id"
+                                    data-other-target="#revision-@request.Id">
                                 Reddet
                             </button>
 
-                            <button class="btn btn-info btn-sm text-dark"
+                            <button class="btn btn-info btn-sm text-dark toggle-action"
+                                    type="button"
                                     data-bs-toggle="collapse"
-                                    data-bs-target="#revision-@request.Id">
+                                    data-bs-target="#revision-@request.Id"
+                                    data-other-target="#reject-@request.Id">
                                 Revize İste
                             </button>
                         </div>
@@ -84,9 +88,9 @@
                                 <input type="hidden" name="id" value="@request.Id" />
                                 @Html.AntiForgeryToken()
                                 <div class="mb-2">
-                                    <textarea name="managerComment" class="form-control" rows="3" placeholder="Red gerekçesi..."></textarea>
+                                    <textarea name="managerComment" class="form-control" rows="3" maxlength="500" placeholder="Red gerekçesi..."></textarea>
                                 </div>
-                                <button type="submit" class="btn btn-danger btn-sm">Reddi Onayla</button>
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bu talebi reddetmek istediğinize emin misiniz?');">Reddi Onayla</button>
                             </form>
                         </div>
 
@@ -95,9 +99,9 @@
                                 <input type="hidden" name="id" value="@request.Id" />
                                 @Html.AntiForgeryToken()
                                 <div class="mb-2">
-                                    <textarea name="managerComment" class="form-control" rows="3" placeholder="Revize notları..."></textarea>
+                                    <textarea name="managerComment" class="form-control" rows="3" maxlength="500" placeholder="Revize notları..."></textarea>
                                 </div>
-                                <button type="submit" class="btn btn-info btn-sm text-dark">Revize Gönder</button>
+                                <button type="submit" class="btn btn-info btn-sm text-dark" onclick="return confirm('Revize talep etmek istediğinize emin misiniz?');">Revize Gönder</button>
                             </form>
                         </div>
 
@@ -107,3 +111,17 @@
         }
     }
 </div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.toggle-action').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const otherTarget = document.querySelector(this.dataset.otherTarget);
+                const otherCollapse = bootstrap.Collapse.getInstance(otherTarget);
+                if (otherCollapse && otherTarget.classList.contains('show')) {
+                    otherCollapse.hide();
+                }
+            });
+        });
+    </script>
+}

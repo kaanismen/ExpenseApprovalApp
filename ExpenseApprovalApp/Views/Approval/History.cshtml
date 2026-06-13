@@ -1,0 +1,73 @@
+﻿@model List<ExpenseApprovalApp.Models.ViewModels.ExpenseRequestListViewModel>
+
+@{
+    ViewData["Title"] = "Onay Geçmişi";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Onay Geçmişi</h2>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">Henüz işlem geçmişi bulunmuyor.</div>
+    }
+    else
+    {
+        @foreach (var request in Model)
+        {
+            <div class="card shadow-sm mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center"
+                     style="cursor:pointer"
+                     data-bs-toggle="collapse"
+                     data-bs-target="#request-@request.Id">
+                    <div>
+                        <strong>@request.Title</strong>
+                        <span class="text-muted small ms-2">@request.Time.ToString("dd MMM yyyy HH:mm")</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="fw-bold">₺@request.Amount.ToString("N2")</span>
+                        <span class="badge @(request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Approved ? "bg-success" :
+                                                                           request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested ? "bg-info text-dark" : "bg-danger")">
+                            @request.Status
+                        </span>
+                    </div>
+                </div>
+
+                <div class="collapse" id="request-@request.Id">
+                    <div class="card-body">
+
+                        <table class="table table-sm mb-3">
+                            <thead>
+                                <tr>
+                                    <th>Ad</th>
+                                    <th>Açıklama</th>
+                                    <th>Kategori</th>
+                                    <th>Tutar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in request.Expenses)
+                                {
+                                    <tr>
+                                        <td>@item.Name</td>
+                                        <td>@item.Description</td>
+                                        <td>@item.Category</td>
+                                        <td>₺@item.Amount.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                        @if (!string.IsNullOrEmpty(request.ManagerComment))
+                        {
+                            <div class="alert @(request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested ? "alert-info" : "alert-danger") py-2">
+                                <small><strong>Notunuz:</strong> @request.ManagerComment</small>
+                            </div>
+                        }
+
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>

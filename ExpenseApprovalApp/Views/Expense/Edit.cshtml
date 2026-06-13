@@ -12,14 +12,20 @@
 
         <div class="mb-3">
             <label asp-for="Title" class="form-label">Başlık</label>
-            <input asp-for="Title" class="form-control" />
-            <span asp-validation-for="Title" class="text-danger"></span>
+            <input asp-for="Title" class="form-control" maxlength="100" id="titleInput" />
+            <div class="d-flex justify-content-between">
+                <span asp-validation-for="Title" class="text-danger"></span>
+                <small class="text-muted" id="titleCounter">0/100</small>
+            </div>
         </div>
 
         <div class="mb-3">
             <label asp-for="Description" class="form-label">Açıklama</label>
-            <textarea asp-for="Description" class="form-control"></textarea>
-            <span asp-validation-for="Description" class="text-danger"></span>
+            <textarea asp-for="Description" class="form-control" maxlength="500" id="descriptionInput"></textarea>
+            <div class="d-flex justify-content-between">
+                <span asp-validation-for="Description" class="text-danger"></span>
+                <small class="text-muted" id="descriptionCounter">0/500</small>
+            </div>
         </div>
 
         <h4 class="mt-4">Harcama Kalemleri</h4>
@@ -50,6 +56,17 @@
     <script>
         let itemIndex = 0;
 
+        function setupCounter(inputId, counterId, max) {
+            const input = document.getElementById(inputId);
+            const counter = document.getElementById(counterId);
+            const update = () => counter.textContent = `${input.value.length}/${max}`;
+            input.addEventListener('input', update);
+            update();
+        }
+
+        setupCounter('titleInput', 'titleCounter', 100);
+        setupCounter('descriptionInput', 'descriptionCounter', 500);
+
         const existingItems = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Items));
 
         existingItems.forEach(item => {
@@ -65,9 +82,9 @@
             const row = document.createElement('tr');
 
             row.innerHTML = `
-                <td><input name="Items[${itemIndex}].Name" class="form-control" value="${name}" /></td>
-                <td><input name="Items[${itemIndex}].Description" class="form-control" value="${description}" /></td>
-                <td><input name="Items[${itemIndex}].Amount" type="number" step="any" class="form-control" value="${amount}" /></td>
+                <td><input name="Items[${itemIndex}].Name" class="form-control" maxlength="50" value="${name}" /></td>
+                <td><input name="Items[${itemIndex}].Description" class="form-control" maxlength="50" value="${description}" /></td>
+                <td><input name="Items[${itemIndex}].Amount" type="number" step="any" min="0.01" class="form-control" value="${amount}" /></td>
                 <td>
                     <select name="Items[${itemIndex}].Category" class="form-select">
                         <option value="0" ${category == 0 ? 'selected' : ''}>Travel</option>
