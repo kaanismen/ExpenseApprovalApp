@@ -130,6 +130,22 @@ namespace ExpenseApprovalApp.Controllers
 
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var request = await _dbContext.ExpenseRequests
+                .Include(e => e.Items)
+                .FirstOrDefaultAsync(e => e.Id == id);
+            if ( request == null) return NotFound();
+            if ( request.Status != ExpenseStatus.RevisionRequested && request.Status != ExpenseStatus.Pending) return Forbid();
+
+            _dbContext.RemoveRange(request.Items);
+            _dbContext.Remove(request);
+
+            await _dbContext.SaveChangesAsync();
+            return RedirectToAction("Index");
+        }
+
         [HttpGet]
         public async Task<IActionResult> Index()
         {
