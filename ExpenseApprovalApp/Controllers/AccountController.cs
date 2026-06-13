@@ -24,21 +24,26 @@ namespace ExpenseApprovalApp.Controllers
         {
             if (ModelState.IsValid)
             {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user != null && !user.IsActive)
+                {
+                    ModelState.AddModelError("", "This account has been deactivated. Please contact your manager for further information.");
+                    return View(model);
+                }
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
                 if (result.Succeeded)
                 {
-                    var user = await _userManager.FindByEmailAsync(model.Email);
                     var roles = await _userManager.GetRolesAsync(user);
                     if (roles.Contains("Employee"))
                     {
                         return RedirectToAction("Index", "Expense");
                     } else if (roles.Contains("Manager"))
                     {
-                        return RedirectToAction("Index", "Home");
-                    } else
+                        return RedirectToAction("Index", "Approval");
+                    } else if (roles.Contains("Admin"))
                     {
-                        return RedirectToAction("Index", "Home");
-                    }
+                        return RedirectToAction("Index", "Admin");
+                    } else { return RedirectToAction("Index", "Home"); }
                     
                     
                 }

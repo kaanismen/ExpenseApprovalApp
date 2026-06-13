@@ -1,0 +1,27 @@
+﻿@{
+    ViewData["Title"] = "Yönetim Paneli";
+}
+
+<div class="container mt-5">
+    <h2 class="mb-4">Yönetim Paneli</h2>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <a asp-action="Users" class="text-decoration-none">
+                <div class="card shadow-sm h-100 text-center p-4">
+                    <h4>Kullanıcı Yönetimi</h4>
+                    <p class="text-muted mb-0">Employee ve Manager hesaplarını yönetin</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6">
+            <a asp-action="AllRequests" class="text-decoration-none">
+                <div class="card shadow-sm h-100 text-center p-4">
+                    <h4>Harcama Talepleri</h4>
+                    <p class="text-muted mb-0">Tüm talepleri görüntüleyin ve filtreleyin</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
