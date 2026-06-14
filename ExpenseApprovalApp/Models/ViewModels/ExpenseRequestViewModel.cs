@@ -9,6 +9,7 @@ namespace ExpenseApprovalApp.Models.ViewModels
         public string Title { get; set; }
         [StringLength(500, ErrorMessage = "Description must not exceed 500 characters.")]
         public string? Description { get; set; }
+        [MinLength(1, ErrorMessage = "At least one expense item is required.")]
         public List<ExpenseItemViewModel> Items { get; set; }
     }
 }

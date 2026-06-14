@@ -76,10 +76,13 @@ namespace ExpenseApprovalApp.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Forbid();
             var request = await _dbContext.ExpenseRequests
                 .Include(e => e.Items)
                 .FirstOrDefaultAsync(e => e.Id == id);
             if (request == null) return NotFound();
+            if (request.IssuedById != user.Id) return Forbid();
             if (request.Status != ExpenseStatus.RevisionRequested && request.Status != ExpenseStatus.Pending) return Forbid();
 
             ViewBag.RequestId = id;
@@ -104,10 +107,13 @@ namespace ExpenseApprovalApp.Controllers
         {
             if (ModelState.IsValid)
             {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null) return Forbid();
                 var request = await _dbContext.ExpenseRequests
                     .Include(e => e.Items)
                     .FirstOrDefaultAsync(e => e.Id == id);
                 if (request == null) return NotFound();
+                if (request.IssuedById != user.Id) return Forbid();
                 if (request.Status != ExpenseStatus.RevisionRequested && request.Status != ExpenseStatus.Pending) return Forbid();
 
                 request.Title = model.Title;
@@ -133,10 +139,13 @@ namespace ExpenseApprovalApp.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Forbid();
             var request = await _dbContext.ExpenseRequests
                 .Include(e => e.Items)
                 .FirstOrDefaultAsync(e => e.Id == id);
             if ( request == null) return NotFound();
+            if (request.IssuedById != user.Id) return Forbid();
             if ( request.Status != ExpenseStatus.RevisionRequested && request.Status != ExpenseStatus.Pending) return Forbid();
 
             _dbContext.RemoveRange(request.Items);

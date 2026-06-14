@@ -74,9 +74,11 @@ namespace ExpenseApprovalApp.Controllers
         [HttpPost]
         public async Task<IActionResult> Approve(int id)
         {
-            
+            var user = await _userManager.GetUserAsync(User);
+            if ( user == null ) return Forbid();
             var request = await _dbContext.ExpenseRequests.FindAsync(id);
             if (request == null) return NotFound();
+            if (request.IssuedToId != user.Id) return Forbid();
             request.Status = ExpenseStatus.Approved;
             await _dbContext.SaveChangesAsync();
             return RedirectToAction("Index");
@@ -85,9 +87,11 @@ namespace ExpenseApprovalApp.Controllers
         [HttpPost]
         public async Task<IActionResult> Reject(int id, string managerComment)
         {
-
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Forbid();
             var request = await _dbContext.ExpenseRequests.FindAsync(id);
             if (request == null) return NotFound();
+            if (request.IssuedToId != user.Id) return Forbid();
             request.Status = ExpenseStatus.Rejected;
             request.ManagerComment = managerComment;
             await _dbContext.SaveChangesAsync();
@@ -97,9 +101,11 @@ namespace ExpenseApprovalApp.Controllers
         [HttpPost]
         public async Task<IActionResult> RevisionRequested(int id, string managerComment)
         {
-
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Forbid();
             var request = await _dbContext.ExpenseRequests.FindAsync(id);
             if (request == null) return NotFound();
+            if (request.IssuedToId != user.Id) return Forbid();
             request.Status = ExpenseStatus.RevisionRequested;
             request.ManagerComment = managerComment;
             await _dbContext.SaveChangesAsync();
