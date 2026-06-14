@@ -1,85 +1,102 @@
-﻿@model List<ExpenseApprovalApp.Models.ViewModels.ExpenseRequestListViewModel>
+@using ExpenseApprovalApp.Models.Enums
+@model List<ExpenseApprovalApp.Models.ViewModels.ExpenseRequestListViewModel>
 
 @{
-    ViewData["Title"] = "Onay Bekleyen Talepler";
+    ViewData["Title"] = "Pending Approvals";
+    var pendingAmount = Model.Sum(r => r.Amount);
 }
 
-<div class="container mt-4">
-    <h2 class="mb-4">Harcama Talepleri</h2>
+<div class="app-shell">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Manager</span>
+            <h1>Pending Approvals</h1>
+            <p class="page-sub">Review expense requests from your team and make a decision.</p>
+        </div>
+    </div>
 
     @if (!Model.Any())
     {
-        <div class="alert alert-info">Bekleyen talep bulunmuyor.</div>
+        <div class="empty-state">
+            <div class="empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+            <h5>No pending requests</h5>
+            <p>There are currently no expense requests awaiting your approval.</p>
+        </div>
     }
     else
     {
+        <div class="stat-grid">
+            <div class="stat">
+                <div class="stat-label"><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round"/></svg></span>Pending Requests</div>
+                <div class="stat-value">@Model.Count</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label"><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Total Amount</div>
+                <div class="stat-value">₺@pendingAmount.ToString("N2")</div>
+            </div>
+        </div>
+
         @foreach (var request in Model)
         {
-            <div class="card shadow-sm mb-3">
-                <div class="card-header d-flex justify-content-between align-items-center"
-                     style="cursor:pointer"
-                     data-bs-toggle="collapse"
-                     data-bs-target="#request-@request.Id">
+            <div class="req-card mb-3">
+                <div class="req-head collapse-head" data-bs-toggle="collapse" data-bs-target="#request-@request.Id" aria-expanded="false">
                     <div>
-                        <strong>@request.Title</strong>
-                        <span class="text-muted small ms-2">@request.Time.ToString("dd MMM yyyy HH:mm")</span>
+                        <h5 class="req-title">@request.Title</h5>
+                        <span class="req-meta">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke-linecap="round"/></svg>
+                            @request.Time.ToString("dd MMM yyyy HH:mm", System.Globalization.CultureInfo.InvariantCulture)
+                        </span>
                     </div>
                     <div class="d-flex align-items-center gap-3">
-                        <span class="fw-bold">₺@request.Amount.ToString("N2")</span>
-                        <span class="badge @(request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Pending ? "bg-warning text-dark" :
-                                                                                                         request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Approved ? "bg-success" :
-                                                                                                         request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested ? "bg-info text-dark" : "bg-danger")">
-                            @request.Status
-                        </span>
+                        <span class="amount">₺@request.Amount.ToString("N2")</span>
+                        <partial name="_StatusBadge" model="request.Status" />
+                        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </div>
                 </div>
 
                 <div class="collapse" id="request-@request.Id">
-                    <div class="card-body">
-
-                        <table class="table table-sm mb-4">
-                            <thead>
-                                <tr>
-                                    <th>Ad</th>
-                                    <th>Açıklama</th>
-                                    <th>Kategori</th>
-                                    <th>Tutar</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in request.Expenses)
-                                {
+                    <div class="card-body pt-0">
+                        <div class="items-table mb-3">
+                            <table class="table table-sm mb-0">
+                                <thead>
                                     <tr>
-                                        <td>@item.Name</td>
-                                        <td>@item.Description</td>
-                                        <td>@item.Category</td>
-                                        <td>₺@item.Amount.ToString("N2")</td>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Category</th>
+                                        <th class="text-end">Amount</th>
                                     </tr>
-                                }
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in request.Expenses)
+                                    {
+                                        <tr>
+                                            <td>@item.Name</td>
+                                            <td class="text-muted">@item.Description</td>
+                                            <td><partial name="_CategoryBadge" model="item.Category" /></td>
+                                            <td class="text-end amount">₺@item.Amount.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
 
                         <div class="d-flex gap-2 flex-wrap">
                             <form asp-action="Approve" method="post">
                                 <input type="hidden" name="id" value="@request.Id" />
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Bu talebi onaylamak istediğinize emin misiniz?');">Onayla</button>
+                                <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to approve this request?');">Approve</button>
                             </form>
 
-                            <button class="btn btn-danger btn-sm toggle-action"
-                                    type="button"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target="#reject-@request.Id"
-                                    data-other-target="#revision-@request.Id">
-                                Reddet
+                            <button class="btn btn-danger btn-sm toggle-action" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#reject-@request.Id" data-other-target="#revision-@request.Id">
+                                Reject
                             </button>
 
-                            <button class="btn btn-info btn-sm text-dark toggle-action"
-                                    type="button"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target="#revision-@request.Id"
-                                    data-other-target="#reject-@request.Id">
-                                Revize İste
+                            <button class="btn btn-outline-secondary btn-sm toggle-action" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#revision-@request.Id" data-other-target="#reject-@request.Id">
+                                Request Revision
                             </button>
                         </div>
 
@@ -87,10 +104,9 @@
                             <form asp-action="Reject" method="post">
                                 <input type="hidden" name="id" value="@request.Id" />
                                 @Html.AntiForgeryToken()
-                                <div class="mb-2">
-                                    <textarea name="managerComment" class="form-control" rows="3" maxlength="500" placeholder="Red gerekçesi..."></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bu talebi reddetmek istediğinize emin misiniz?');">Reddi Onayla</button>
+                                <label class="form-label">Reason for rejection</label>
+                                <textarea name="managerComment" class="form-control mb-2" rows="3" maxlength="500" placeholder="Explain why this request is being rejected..."></textarea>
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to reject this request?');">Confirm Rejection</button>
                             </form>
                         </div>
 
@@ -98,13 +114,11 @@
                             <form asp-action="RevisionRequested" method="post">
                                 <input type="hidden" name="id" value="@request.Id" />
                                 @Html.AntiForgeryToken()
-                                <div class="mb-2">
-                                    <textarea name="managerComment" class="form-control" rows="3" maxlength="500" placeholder="Revize notları..."></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-info btn-sm text-dark" onclick="return confirm('Revize talep etmek istediğinize emin misiniz?');">Revize Gönder</button>
+                                <label class="form-label">Revision notes</label>
+                                <textarea name="managerComment" class="form-control mb-2" rows="3" maxlength="500" placeholder="Describe the changes you want the employee to make..."></textarea>
+                                <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Are you sure you want to request a revision?');">Send Revision</button>
                             </form>
                         </div>
-
                     </div>
                 </div>
             </div>

@@ -1,8 +1,41 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@using Microsoft.AspNetCore.Identity
+@using ExpenseApprovalApp.Models.Entities
+@inject UserManager<AppUser> UserManager
+
+@{
+    ViewData["Title"] = "Home";
+    var me = await UserManager.GetUserAsync(User);
+    var firstName = me?.FirstName ?? "";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="app-shell">
+    <div class="card" style="background:linear-gradient(135deg,#ffffff, #f6f7ff);overflow:hidden">
+        <div class="card-body p-4 p-md-5">
+            <span class="eyebrow">Expense Approval System</span>
+            <h1 class="mt-2 mb-2" style="font-size:1.9rem">
+                Welcome@(string.IsNullOrEmpty(firstName) ? "" : $", {firstName}")
+            </h1>
+            <p class="text-muted mb-4" style="max-width:520px">
+                Create and track expense requests and manage approval workflows all in one place.
+            </p>
+
+            <div class="d-flex gap-2 flex-wrap">
+                @if (User.IsInRole("Employee"))
+                {
+                    <a asp-controller="Expense" asp-action="Create" class="btn btn-primary">+ New Request</a>
+                    <a asp-controller="Expense" asp-action="Index" class="btn btn-outline-secondary">My Requests</a>
+                }
+                else if (User.IsInRole("Manager"))
+                {
+                    <a asp-controller="Approval" asp-action="Index" class="btn btn-primary">Pending Approvals</a>
+                    <a asp-controller="Approval" asp-action="History" class="btn btn-outline-secondary">Approval History</a>
+                }
+                else if (User.IsInRole("Admin"))
+                {
+                    <a asp-controller="Admin" asp-action="Users" class="btn btn-primary">User Management</a>
+                    <a asp-controller="Admin" asp-action="AllRequests" class="btn btn-outline-secondary">All Requests</a>
+                }
+            </div>
+        </div>
+    </div>
 </div>

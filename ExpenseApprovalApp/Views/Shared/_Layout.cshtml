@@ -1,9 +1,27 @@
-﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Identity
 @using ExpenseApprovalApp.Models.Entities
 @inject UserManager<AppUser> UserManager
 
 @{
     var currentUser = await UserManager.GetUserAsync(User);
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+
+    string NavActive(string c, params string[] actions)
+        => controller == c && (actions.Length == 0 || actions.Contains(action)) ? "active" : "";
+
+    var isAuth = User?.Identity?.IsAuthenticated == true;
+    var initials = "";
+    var roleLabel = "";
+    if (currentUser != null)
+    {
+        var f = string.IsNullOrEmpty(currentUser.FirstName) ? "" : currentUser.FirstName.Substring(0, 1);
+        var l = string.IsNullOrEmpty(currentUser.LastName) ? "" : currentUser.LastName.Substring(0, 1);
+        initials = (f + l).ToUpper();
+        if (User.IsInRole("Admin")) roleLabel = "Administrator";
+        else if (User.IsInRole("Manager")) roleLabel = "Manager";
+        else if (User.IsInRole("Employee")) roleLabel = "Employee";
+    }
 }
 
 <!DOCTYPE html>
@@ -11,76 +29,126 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - ExpenseApprovalApp</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] · ExpenseApprovalApp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ExpenseApprovalApp.styles.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-lg app-navbar">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ExpenseApprovalApp</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <a class="navbar-brand app-brand" asp-controller="Home" asp-action="Index">
+                    <span class="brand-mark">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 3h14a1 1 0 0 1 1 1v17l-3-2-2 2-2-2-2 2-2-2-3 2V4a1 1 0 0 1 1-1Z" />
+                            <path d="M9 8h6M9 12h6" />
+                        </svg>
+                    </span>
+                    <span>ExpenseApp</span>
+                </a>
+
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                        aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav app-nav me-auto mb-2 mb-lg-0 mt-2 mt-lg-0">
                         @if (User.IsInRole("Employee"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Expense" asp-action="Index">Taleplerim</a>
+                                <a class="nav-link app-nav-link @NavActive("Expense", "Index", "Edit")" asp-controller="Expense" asp-action="Index">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h11M8 12h11M8 18h11" /><path d="M3 6h.01M3 12h.01M3 18h.01" /></svg>
+                                    My Requests
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Expense" asp-action="Create">Yeni Talep</a>
+                                <a class="nav-link app-nav-link @NavActive("Expense", "Create")" asp-controller="Expense" asp-action="Create">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 8v8M8 12h8" /></svg>
+                                    New Request
+                                </a>
                             </li>
                         }
                         else if (User.IsInRole("Manager"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Approval" asp-action="Index">Onay Bekleyenler</a>
+                                <a class="nav-link app-nav-link @NavActive("Approval", "Index")" asp-controller="Approval" asp-action="Index">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2" /><path d="M5 5h14l3 7v5a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-5l3-7Z" /></svg>
+                                    Pending Approvals
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Approval" asp-action="History">Onay Geçmişi</a>
+                                <a class="nav-link app-nav-link @NavActive("Approval", "History")" asp-controller="Approval" asp-action="History">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v6h6" /><path d="M3.5 9a9 9 0 1 1-.5 5" /><path d="M12 7v5l3 2" /></svg>
+                                    Approval History
+                                </a>
                             </li>
                         }
                         else if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Admin" asp-action="Index">Yönetim Paneli</a>
+                                <a class="nav-link app-nav-link @NavActive("Admin", "Index")" asp-controller="Admin" asp-action="Index">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>
+                                    Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link app-nav-link @NavActive("Admin", "Users", "CreateUser", "EditUser")" asp-controller="Admin" asp-action="Users">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13A4 4 0 0 1 16 11" /></svg>
+                                    Users
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link app-nav-link @NavActive("Admin", "AllRequests")" asp-controller="Admin" asp-action="AllRequests">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h11M8 12h11M8 18h11" /><path d="M3 6h.01M3 12h.01M3 18h.01" /></svg>
+                                    Requests
+                                </a>
                             </li>
                         }
                     </ul>
 
-                    <div class="d-flex align-items-center gap-3">
-                        @if (User.Identity.IsAuthenticated && currentUser != null)
-                        {
-                            <span class="text-muted small">
-                                @currentUser.FirstName @currentUser.LastName — @currentUser.Department
-                            </span>
-                        }
-                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-outline-secondary btn-sm">Çıkış</button>
-                        </form>
-                    </div>
+                    @if (isAuth && currentUser != null)
+                    {
+                        <div class="d-flex align-items-center gap-3 flex-wrap">
+                            <div class="user-chip">
+                                <span class="avatar">@(string.IsNullOrEmpty(initials) ? "?" : initials)</span>
+                                <span class="user-meta">
+                                    <span class="u-name d-block">@currentUser.FirstName @currentUser.LastName</span>
+                                    <span class="u-sub">
+                                        @currentUser.Department
+                                        @if (!string.IsNullOrEmpty(roleLabel))
+                                        {
+                                            <span class="role-pill ms-1">@roleLabel</span>
+                                        }
+                                    </span>
+                                </span>
+                            </div>
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-secondary btn-sm">Sign Out</button>
+                            </form>
+                        </div>
+                    }
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - ExpenseApprovalApp
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    <footer class="app-footer">
+        <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span>&copy; 2026 ExpenseApprovalApp</span>
+            <span class="text-muted">Expense approval management</span>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

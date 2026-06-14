@@ -1,83 +1,126 @@
-﻿@model List<ExpenseApprovalApp.Models.ViewModels.AdminRequestListViewModel>
+@using ExpenseApprovalApp.Models.Enums
+@model List<ExpenseApprovalApp.Models.ViewModels.AdminRequestListViewModel>
 
 @{
-    ViewData["Title"] = "Tüm Harcama Talepleri";
+    ViewData["Title"] = "All Expense Requests";
+    var totalAmount = Model.Sum(m => m.Amount);
+    var pending = Model.Count(m => m.Status == ExpenseStatus.Pending);
+    var approved = Model.Count(m => m.Status == ExpenseStatus.Approved);
 }
 
-<div class="container mt-4">
-    <h2 class="mb-4">Tüm Harcama Talepleri</h2>
+<div class="app-shell">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Administrator</span>
+            <h1>All Expense Requests</h1>
+            <p class="page-sub">Filter and sort requests across all departments.</p>
+        </div>
+    </div>
 
     @if (!Model.Any())
     {
-        <div class="alert alert-info">Henüz talep bulunmuyor.</div>
+        <div class="empty-state">
+            <div class="empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            </div>
+            <h5>No requests</h5>
+            <p>No expense requests have been created in the system yet.</p>
+        </div>
     }
     else
     {
-        <div class="row mb-3 g-2">
-            <div class="col-auto">
-                <select id="statusFilter" class="form-select">
-                    <option value="">Tüm Durumlar</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Approved">Approved</option>
-                    <option value="Rejected">Rejected</option>
-                    <option value="RevisionRequested">RevisionRequested</option>
-                </select>
+        <div class="stat-grid">
+            <div class="stat">
+                <div class="stat-label"><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h11M8 12h11M8 18h11M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg></span>Total Requests</div>
+                <div class="stat-value">@Model.Count</div>
             </div>
-            <div class="col-auto">
-                <select id="departmentFilter" class="form-select">
-                    <option value="">Tüm Departmanlar</option>
-                    @foreach (var dept in Model.Select(m => m.Department).Distinct())
-                    {
-                        <option value="@dept">@dept</option>
-                    }
-                </select>
+            <div class="stat">
+                <div class="stat-label"><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round"/></svg></span>Pending</div>
+                <div class="stat-value">@pending</div>
             </div>
-            <div class="col-auto">
-                <select id="sortSelect" class="form-select">
-                    <option value="date_desc">Tarih (Yeni → Eski)</option>
-                    <option value="date_asc">Tarih (Eski → Yeni)</option>
-                    <option value="amount_desc">Tutar (Yüksek → Düşük)</option>
-                    <option value="amount_asc">Tutar (Düşük → Yüksek)</option>
-                </select>
+            <div class="stat">
+                <div class="stat-label"><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Approved</div>
+                <div class="stat-value">@approved</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label"><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Total Amount</div>
+                <div class="stat-value">₺@totalAmount.ToString("N2")</div>
             </div>
         </div>
 
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Başlık</th>
-                    <th>Çalışan</th>
-                    <th>Yönetici</th>
-                    <th>Departman</th>
-                    <th>Tutar</th>
-                    <th>Tarih</th>
-                    <th>Durum</th>
-                </tr>
-            </thead>
-            <tbody id="requestsBody">
-                @foreach (var request in Model)
-                {
-                    <tr data-status="@request.Status" data-department="@request.Department"
-                        data-amount="@request.Amount" data-date="@request.Time.ToString("yyyy-MM-ddTHH:mm:ss")">
-                        <td>@request.Title</td>
-                        <td>@request.EmployeeName</td>
-                        <td>@request.ManagerName</td>
-                        <td>@request.Department</td>
-                        <td>₺@request.Amount.ToString("N2")</td>
-                        <td>@request.Time.ToString("dd MMM yyyy HH:mm")</td>
-                        <td>
-                            <span class="badge @(request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Pending ? "bg-warning text-dark" :
-                                                                                   request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Approved ? "bg-success" :
-                                                                                   request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested ? "bg-info text-dark" : "bg-danger")">
-                                @request.Status
-                            </span>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        <div class="card mb-3">
+            <div class="card-body py-3">
+                <div class="row g-3 align-items-end">
+                    <div class="col-sm-6 col-lg-3">
+                        <label class="form-label">Status</label>
+                        <select id="statusFilter" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="RevisionRequested">Revision Requested</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <label class="form-label">Department</label>
+                        <select id="departmentFilter" class="form-select">
+                            <option value="">All Departments</option>
+                            @foreach (var dept in Model.Select(m => m.Department).Distinct())
+                            {
+                                <option value="@dept">@dept</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <label class="form-label">Sort</label>
+                        <select id="sortSelect" class="form-select">
+                            <option value="date_desc">Date (Newest first)</option>
+                            <option value="date_asc">Date (Oldest first)</option>
+                            <option value="amount_desc">Amount (High to low)</option>
+                            <option value="amount_asc">Amount (Low to high)</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 text-lg-end">
+                        <span class="text-muted" style="font-size:.85rem">Showing <span id="resultCount">@Model.Count</span> requests</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <div id="noResults" class="alert alert-info d-none">Filtreye uyan talep bulunamadı.</div>
+        <div class="data-card">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Employee</th>
+                            <th>Manager</th>
+                            <th>Department</th>
+                            <th class="text-end">Amount</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsBody">
+                        @foreach (var request in Model)
+                        {
+                            <tr data-status="@request.Status" data-department="@request.Department"
+                                data-amount="@request.Amount" data-date="@request.Time.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                <td class="fw-semibold">@request.Title</td>
+                                <td>@request.EmployeeName</td>
+                                <td>@request.ManagerName</td>
+                                <td>@request.Department</td>
+                                <td class="text-end amount">₺@request.Amount.ToString("N2")</td>
+                                <td class="text-muted">@request.Time.ToString("dd MMM yyyy HH:mm", System.Globalization.CultureInfo.InvariantCulture)</td>
+                                <td><partial name="_StatusBadge" model="request.Status" /></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="noResults" class="text-muted text-center mt-3 d-none">No requests match the filter.</div>
     }
 </div>
 
@@ -88,6 +131,7 @@
         const sortSelect = document.getElementById('sortSelect');
         const tbody = document.getElementById('requestsBody');
         const noResults = document.getElementById('noResults');
+        const resultCount = document.getElementById('resultCount');
 
         function applyFiltersAndSort() {
             const rows = Array.from(tbody.querySelectorAll('tr'));
@@ -106,6 +150,7 @@
             });
 
             noResults.classList.toggle('d-none', visibleCount > 0);
+            if (resultCount) resultCount.textContent = visibleCount;
 
             const sortedRows = rows.slice().sort((a, b) => {
                 if (sortVal === 'amount_desc') return parseFloat(b.dataset.amount) - parseFloat(a.dataset.amount);

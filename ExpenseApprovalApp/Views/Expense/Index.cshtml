@@ -1,90 +1,130 @@
-﻿@model List<ExpenseApprovalApp.Models.ViewModels.ExpenseRequestListViewModel>
+@using ExpenseApprovalApp.Models.Enums
+@model List<ExpenseApprovalApp.Models.ViewModels.ExpenseRequestListViewModel>
 
 @{
-    ViewData["Title"] = "Harcama Taleplerim";
+    ViewData["Title"] = "My Expense Requests";
+    var total = Model.Count;
+    var pending = Model.Count(r => r.Status == ExpenseStatus.Pending);
+    var approved = Model.Count(r => r.Status == ExpenseStatus.Approved);
+    var totalAmount = Model.Sum(r => r.Amount);
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Harcama Taleplerim</h2>
-        <a asp-action="Create" class="btn btn-primary">+ Yeni Talep</a>
+<div class="app-shell">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Employee</span>
+            <h1>My Expense Requests</h1>
+            <p class="page-sub">View the requests you have created and track their status.</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">+ New Request</a>
     </div>
 
     @if (!Model.Any())
     {
-        <div class="alert alert-info">Henüz harcama talebiniz bulunmuyor.</div>
+        <div class="empty-state">
+            <div class="empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6M12 18v-6M9 15h6" /></svg>
+            </div>
+            <h5>No requests yet</h5>
+            <p class="mb-3">Get started by creating your first expense request.</p>
+            <a asp-action="Create" class="btn btn-primary">+ Create New Request</a>
+        </div>
     }
     else
     {
-        <div class="row align-items-stretch">
+        <div class="stat-grid">
+            <div class="stat">
+                <div class="stat-label"><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h11M8 12h11M8 18h11M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg></span>Total Requests</div>
+                <div class="stat-value">@total</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label"><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round"/></svg></span>Pending</div>
+                <div class="stat-value">@pending</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label"><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Approved</div>
+                <div class="stat-value">@approved</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label"><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Total Amount</div>
+                <div class="stat-value">₺@totalAmount.ToString("N2")</div>
+            </div>
+        </div>
+
+        <div class="row g-3 align-items-stretch">
             @foreach (var request in Model)
             {
-                <div class="col-md-6 mb-3 d-flex">
-                    <div class="card shadow-sm w-100">
+                <div class="col-lg-6 d-flex">
+                    <div class="req-card w-100 d-flex flex-column">
                         <div class="card-body d-flex flex-column">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <h5 class="card-title">@request.Title</h5>
-                                <span class="badge @(request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Pending ? "bg-warning text-dark" :
-                                                                                                                                 request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Approved ? "bg-success" :
-                                                                                                                                 request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested ? "bg-info text-dark" : "bg-danger")">
-                                    @request.Status
-                                </span>
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                <div>
+                                    <h5 class="req-title">@request.Title</h5>
+                                    <span class="req-meta">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke-linecap="round"/></svg>
+                                        @request.Time.ToString("dd MMM yyyy HH:mm", System.Globalization.CultureInfo.InvariantCulture)
+                                    </span>
+                                </div>
+                                <partial name="_StatusBadge" model="request.Status" />
                             </div>
-                            <p class="text-muted small mb-2">@request.Time.ToString("dd MMM yyyy HH:mm")</p>
-                            <p class="fw-bold">Toplam: ₺@request.Amount.ToString("N2")</p>
 
-                            @if ((request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Rejected ||
-                                  request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested) &&
-                                  !string.IsNullOrEmpty(request.ManagerComment))
+                            <div class="my-3">
+                                <div class="text-muted" style="font-size:.78rem">Total Amount</div>
+                                <div class="amount amount-lg">₺@request.Amount.ToString("N2")</div>
+                            </div>
+
+                            @if ((request.Status == ExpenseStatus.Rejected || request.Status == ExpenseStatus.RevisionRequested)
+                                && !string.IsNullOrEmpty(request.ManagerComment))
                             {
-                                <div class="alert @(request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested ? "alert-info" : "alert-danger") py-2 mt-2">
-                                    <small><strong>Yönetici Notu:</strong> @request.ManagerComment</small>
+                                <div class="note @(request.Status == ExpenseStatus.RevisionRequested ? "note-info" : "note-danger") mb-2">
+                                    <svg class="note-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    <span><strong>Manager Note:</strong> @request.ManagerComment</span>
                                 </div>
                             }
 
-                            <div class="mt-auto">
-                                @if (request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested ||
-                                     request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Pending)
-                                {
-                                    <a asp-action="Edit" asp-route-id="@request.Id" class="btn btn-warning btn-sm mt-2 me-2">Düzenle</a>
-
-                                    <form asp-action="Delete" method="post" class="d-inline">
-                                        <input type="hidden" name="id" value="@request.Id" />
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-outline-danger btn-sm mt-2 me-2"
-                                                onclick="return confirm('Bu talebi silmek istediğinize emin misiniz?');">
-                                            Sil
-                                        </button>
-                                    </form>
-                                }
-                                <button class="btn btn-outline-secondary btn-sm mt-2"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target="#items-@request.Id">
-                                    Kalemleri Göster
-                                </button>
+                            <div class="mt-auto pt-2">
+                                <div class="d-flex flex-wrap gap-2">
+                                    @if (request.Status == ExpenseStatus.RevisionRequested || request.Status == ExpenseStatus.Pending)
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@request.Id" class="btn btn-outline-secondary btn-sm">Edit</a>
+                                        <form asp-action="Delete" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@request.Id" />
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-danger btn-sm"
+                                                    onclick="return confirm('Are you sure you want to delete this request?');">Delete</button>
+                                        </form>
+                                    }
+                                    <button class="btn btn-outline-secondary btn-sm ms-auto" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#items-@request.Id" aria-expanded="false">
+                                        Items (@request.Expenses.Count)
+                                        <svg class="chevron ms-1" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </button>
+                                </div>
 
                                 <div class="collapse mt-3" id="items-@request.Id">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Ad</th>
-                                                <th>Açıklama</th>
-                                                <th>Kategori</th>
-                                                <th>Tutar</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach (var item in request.Expenses)
-                                            {
+                                    <div class="items-table">
+                                        <table class="table table-sm mb-0">
+                                            <thead>
                                                 <tr>
-                                                    <td>@item.Name</td>
-                                                    <td>@item.Description</td>
-                                                    <td>@item.Category</td>
-                                                    <td>₺@item.Amount.ToString("N2")</td>
+                                                    <th>Name</th>
+                                                    <th>Description</th>
+                                                    <th>Category</th>
+                                                    <th class="text-end">Amount</th>
                                                 </tr>
-                                            }
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in request.Expenses)
+                                                {
+                                                    <tr>
+                                                        <td>@item.Name</td>
+                                                        <td class="text-muted">@item.Description</td>
+                                                        <td><partial name="_CategoryBadge" model="item.Category" /></td>
+                                                        <td class="text-end amount">₺@item.Amount.ToString("N2")</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>

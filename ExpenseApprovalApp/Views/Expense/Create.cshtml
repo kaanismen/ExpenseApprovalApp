@@ -1,58 +1,85 @@
-﻿@model ExpenseApprovalApp.Models.ViewModels.ExpenseRequestViewModel
+@model ExpenseApprovalApp.Models.ViewModels.ExpenseRequestViewModel
 
 @{
-    ViewData["Title"] = "Yeni Harcama Talebi";
+    ViewData["Title"] = "New Expense Request";
 }
 
-<div class="container mt-4">
-    <h2>Yeni Harcama Talebi</h2>
+<div class="app-shell" style="max-width:880px">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Employee</span>
+            <h1>New Expense Request</h1>
+            <p class="page-sub">Create your request and add expense items.</p>
+        </div>
+    </div>
 
     <form asp-action="Create" method="post">
         <div asp-validation-summary="All" class="text-danger mb-3"></div>
-        <div class="mb-3">
-            <label asp-for="Title" class="form-label">Başlık</label>
-            <input asp-for="Title" class="form-control" maxlength="100" id="titleInput" />
-            <div class="d-flex justify-content-between">
-                <span asp-validation-for="Title" class="text-danger"></span>
-                <small class="text-muted" id="titleCounter">0/100</small>
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label">Title</label>
+                    <input asp-for="Title" class="form-control" maxlength="100" id="titleInput" placeholder="e.g. Istanbul business trip" />
+                    <div class="field-foot">
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                        <small class="char-counter" id="titleCounter">0/100</small>
+                    </div>
+                </div>
+
+                <div class="mb-0">
+                    <label asp-for="Description" class="form-label">Description</label>
+                    <textarea asp-for="Description" class="form-control" maxlength="500" rows="3" id="descriptionInput" placeholder="A short description of the request..."></textarea>
+                    <div class="field-foot">
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                        <small class="char-counter" id="descriptionCounter">0/500</small>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="mb-3">
-            <label asp-for="Description" class="form-label">Açıklama</label>
-            <textarea asp-for="Description" class="form-control" maxlength="500" id="descriptionInput"></textarea>
-            <div class="d-flex justify-content-between">
-                <span asp-validation-for="Description" class="text-danger"></span>
-                <small class="text-muted" id="descriptionCounter">0/500</small>
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Expense Items</h5>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="addItemBtn">+ Add Item</button>
+                </div>
+
+                <div class="items-table">
+                    <table class="table table-sm mb-0" id="itemsTable">
+                        <thead>
+                            <tr>
+                                <th style="width:24%">Name</th>
+                                <th style="width:30%">Description</th>
+                                <th style="width:18%">Amount</th>
+                                <th style="width:20%">Category</th>
+                                <th style="width:8%"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsBody"></tbody>
+                    </table>
+                </div>
+
+                <p class="text-muted text-center my-3" id="emptyItems" style="font-size:.88rem">
+                    No items added yet. Start by clicking “Add Item”.
+                </p>
+
+                <div class="d-flex justify-content-end align-items-baseline gap-2 mt-3">
+                    <span class="text-muted" style="font-size:.85rem">Total:</span>
+                    <span class="amount amount-lg" id="grandTotal">₺0,00</span>
+                </div>
             </div>
         </div>
 
-        <h4 class="mt-4">Harcama Kalemleri</h4>
-        <table class="table" id="itemsTable">
-            <thead>
-                <tr>
-                    <th>Ad</th>
-                    <th>Açıklama</th>
-                    <th>Tutar</th>
-                    <th>Kategori</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody id="itemsBody">
-            </tbody>
-        </table>
-
-        <button type="button" class="btn btn-secondary mb-3" id="addItemBtn">+ Kalem Ekle</button>
-
-        <div>
-            <button type="submit" class="btn btn-primary">Talebi Gönder</button>
-            <a asp-action="Index" class="btn btn-outline-secondary">İptal</a>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Submit Request</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
         </div>
-
     </form>
 </div>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
         let itemIndex = 0;
 
@@ -67,27 +94,42 @@
         setupCounter('titleInput', 'titleCounter', 100);
         setupCounter('descriptionInput', 'descriptionCounter', 500);
 
-        document.getElementById('addItemBtn').addEventListener('click', function () {
-            const tbody = document.getElementById('itemsBody');
-            const row = document.createElement('tr');
+        const tbody = document.getElementById('itemsBody');
+        const emptyItems = document.getElementById('emptyItems');
+        const grandTotal = document.getElementById('grandTotal');
 
+        function recalc() {
+            let sum = 0;
+            tbody.querySelectorAll('input[type="number"]').forEach(i => {
+                const v = parseFloat(i.value);
+                if (!isNaN(v)) sum += v;
+            });
+            grandTotal.textContent = '₺' + sum.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            emptyItems.style.display = tbody.children.length ? 'none' : '';
+        }
+
+        document.getElementById('addItemBtn').addEventListener('click', function () {
+            const row = document.createElement('tr');
             row.innerHTML = `
-                <td><input name="Items[${itemIndex}].Name" class="form-control" maxlength="50" /></td>
-                <td><input name="Items[${itemIndex}].Description" class="form-control" maxlength="50" /></td>
-                <td><input name="Items[${itemIndex}].Amount" type="number" step="any" min="0.01" class="form-control" /></td>
+                <td><input name="Items[${itemIndex}].Name" class="form-control form-control-sm" maxlength="50" /></td>
+                <td><input name="Items[${itemIndex}].Description" class="form-control form-control-sm" maxlength="50" /></td>
+                <td><input name="Items[${itemIndex}].Amount" type="number" step="any" min="0.01" class="form-control form-control-sm" /></td>
                 <td>
-                    <select name="Items[${itemIndex}].Category" class="form-select">
+                    <select name="Items[${itemIndex}].Category" class="form-select form-select-sm">
                         <option value="0">Travel</option>
-                        <option value="1">Food</option>
-                        <option value="2">Office</option>
+                        <option value="1">Supply</option>
+                        <option value="2">Client</option>
                         <option value="3">Other</option>
                     </select>
                 </td>
-                <td><button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">Sil</button></td>
+                <td class="text-end"><button type="button" class="btn btn-outline-danger btn-sm" title="Remove" onclick="this.closest('tr').remove(); recalc();">&times;</button></td>
             `;
-
             tbody.appendChild(row);
             itemIndex++;
+            recalc();
         });
+
+        tbody.addEventListener('input', recalc);
+        recalc();
     </script>
 }

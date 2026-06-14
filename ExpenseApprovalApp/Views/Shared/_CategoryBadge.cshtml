@@ -1,0 +1,14 @@
+@model ExpenseApprovalApp.Models.Enums.ExpenseCategory
+
+@{
+    var (cls, label) = Model switch
+    {
+        ExpenseApprovalApp.Models.Enums.ExpenseCategory.Travel => ("cat-travel", "Travel"),
+        ExpenseApprovalApp.Models.Enums.ExpenseCategory.Supply => ("cat-supply", "Supply"),
+        ExpenseApprovalApp.Models.Enums.ExpenseCategory.Client => ("cat-client", "Client"),
+        ExpenseApprovalApp.Models.Enums.ExpenseCategory.Other => ("cat-other", "Other"),
+        _ => ("cat-other", Model.ToString())
+    };
+}
+
+<span class="cat-pill @cls">@label</span>

@@ -49,7 +49,7 @@ namespace ExpenseApprovalApp.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("", "Invalid email veya şifre");
+                    ModelState.AddModelError("", "Invalid email or password");
                     return View(model);
                 }
 

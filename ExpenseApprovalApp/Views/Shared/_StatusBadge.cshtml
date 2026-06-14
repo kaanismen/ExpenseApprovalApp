@@ -1,0 +1,14 @@
+@model ExpenseApprovalApp.Models.Enums.ExpenseStatus
+
+@{
+    var (cls, label) = Model switch
+    {
+        ExpenseApprovalApp.Models.Enums.ExpenseStatus.Pending => ("status-pending", "Pending"),
+        ExpenseApprovalApp.Models.Enums.ExpenseStatus.Approved => ("status-approved", "Approved"),
+        ExpenseApprovalApp.Models.Enums.ExpenseStatus.Rejected => ("status-rejected", "Rejected"),
+        ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested => ("status-revision", "Revision Requested"),
+        _ => ("status-pending", Model.ToString())
+    };
+}
+
+<span class="status-badge @cls">@label</span>
