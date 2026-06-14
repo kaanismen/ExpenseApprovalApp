@@ -13,7 +13,7 @@ namespace ExpenseApprovalApp.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly AppDbContext _dbContext;
 
-        public AdminController (UserManager<AppUser> userManager, AppDbContext dbContext)
+        public AdminController(UserManager<AppUser> userManager, AppDbContext dbContext)
         {
             _userManager = userManager;
             _dbContext = dbContext;
@@ -68,6 +68,43 @@ namespace ExpenseApprovalApp.Controllers
             return RedirectToAction("Users");
         }
 
+        [HttpGet]
+        public IActionResult CreateUser()
+        {
+            return View();
+        }
 
+        [HttpPost]
+        public async Task<IActionResult> CreateUser(CreateUserViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = new AppUser
+                {
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    Department = model.Department,
+                    Email = model.Email,
+                    UserName = model.Email,
+                };
+
+                var result = await _userManager.CreateAsync(user, model.Password);
+
+                if (result.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(user, model.Role);
+                    return RedirectToAction("Users");
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+                return View(model);
+            }
+            return View(model);
+
+
+        }
     }
 }
