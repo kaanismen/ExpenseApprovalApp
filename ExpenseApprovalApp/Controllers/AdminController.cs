@@ -4,6 +4,7 @@ using ExpenseApprovalApp.Data;
 using ExpenseApprovalApp.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using ExpenseApprovalApp.Models.ViewModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace ExpenseApprovalApp.Controllers
 {
@@ -170,6 +171,28 @@ namespace ExpenseApprovalApp.Controllers
             }
 
             return RedirectToAction("EditUser", new { id });
+        }
+
+        [HttpGet]
+        public IActionResult AllRequests()
+        {
+            var requests = _dbContext.ExpenseRequests
+                .Include(e => e.IssuedBy)
+                .Include(e => e.IssuedTo)
+                .ToList();
+            var model = requests.Select(e => new AdminRequestListViewModel
+            {
+                Id = e.Id,
+                Title = e.Title,
+                Amount = e.Amount,
+                Status = e.Status,
+                Time = e.Date,
+                EmployeeName = $"{e.IssuedBy.FirstName} {e.IssuedBy.LastName}",
+                ManagerName = $"{e.IssuedTo.FirstName} {e.IssuedTo.LastName}",
+                Department = e.IssuedBy.Department
+            }).ToList();
+
+            return View(model);
         }
     }
 }

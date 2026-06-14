@@ -1,0 +1,124 @@
+﻿@model List<ExpenseApprovalApp.Models.ViewModels.AdminRequestListViewModel>
+
+@{
+    ViewData["Title"] = "Tüm Harcama Talepleri";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Tüm Harcama Talepleri</h2>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">Henüz talep bulunmuyor.</div>
+    }
+    else
+    {
+        <div class="row mb-3 g-2">
+            <div class="col-auto">
+                <select id="statusFilter" class="form-select">
+                    <option value="">Tüm Durumlar</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="RevisionRequested">RevisionRequested</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <select id="departmentFilter" class="form-select">
+                    <option value="">Tüm Departmanlar</option>
+                    @foreach (var dept in Model.Select(m => m.Department).Distinct())
+                    {
+                        <option value="@dept">@dept</option>
+                    }
+                </select>
+            </div>
+            <div class="col-auto">
+                <select id="sortSelect" class="form-select">
+                    <option value="date_desc">Tarih (Yeni → Eski)</option>
+                    <option value="date_asc">Tarih (Eski → Yeni)</option>
+                    <option value="amount_desc">Tutar (Yüksek → Düşük)</option>
+                    <option value="amount_asc">Tutar (Düşük → Yüksek)</option>
+                </select>
+            </div>
+        </div>
+
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Başlık</th>
+                    <th>Çalışan</th>
+                    <th>Yönetici</th>
+                    <th>Departman</th>
+                    <th>Tutar</th>
+                    <th>Tarih</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+            <tbody id="requestsBody">
+                @foreach (var request in Model)
+                {
+                    <tr data-status="@request.Status" data-department="@request.Department"
+                        data-amount="@request.Amount" data-date="@request.Time.ToString("yyyy-MM-ddTHH:mm:ss")">
+                        <td>@request.Title</td>
+                        <td>@request.EmployeeName</td>
+                        <td>@request.ManagerName</td>
+                        <td>@request.Department</td>
+                        <td>₺@request.Amount.ToString("N2")</td>
+                        <td>@request.Time.ToString("dd MMM yyyy HH:mm")</td>
+                        <td>
+                            <span class="badge @(request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Pending ? "bg-warning text-dark" :
+                                                                                   request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.Approved ? "bg-success" :
+                                                                                   request.Status == ExpenseApprovalApp.Models.Enums.ExpenseStatus.RevisionRequested ? "bg-info text-dark" : "bg-danger")">
+                                @request.Status
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div id="noResults" class="alert alert-info d-none">Filtreye uyan talep bulunamadı.</div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        const statusFilter = document.getElementById('statusFilter');
+        const departmentFilter = document.getElementById('departmentFilter');
+        const sortSelect = document.getElementById('sortSelect');
+        const tbody = document.getElementById('requestsBody');
+        const noResults = document.getElementById('noResults');
+
+        function applyFiltersAndSort() {
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const statusVal = statusFilter.value;
+            const deptVal = departmentFilter.value;
+            const sortVal = sortSelect.value;
+
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const matchesStatus = !statusVal || row.dataset.status === statusVal;
+                const matchesDept = !deptVal || row.dataset.department === deptVal;
+                const visible = matchesStatus && matchesDept;
+                row.style.display = visible ? '' : 'none';
+                if (visible) visibleCount++;
+            });
+
+            noResults.classList.toggle('d-none', visibleCount > 0);
+
+            const sortedRows = rows.slice().sort((a, b) => {
+                if (sortVal === 'amount_desc') return parseFloat(b.dataset.amount) - parseFloat(a.dataset.amount);
+                if (sortVal === 'amount_asc') return parseFloat(a.dataset.amount) - parseFloat(b.dataset.amount);
+                if (sortVal === 'date_asc') return new Date(a.dataset.date) - new Date(b.dataset.date);
+                return new Date(b.dataset.date) - new Date(a.dataset.date);
+            });
+
+            sortedRows.forEach(row => tbody.appendChild(row));
+        }
+
+        statusFilter.addEventListener('change', applyFiltersAndSort);
+        departmentFilter.addEventListener('change', applyFiltersAndSort);
+        sortSelect.addEventListener('change', applyFiltersAndSort);
+    </script>
+}
